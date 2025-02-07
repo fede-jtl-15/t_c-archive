@@ -36,7 +36,7 @@ async function uploadNewVideos() {
           // Upload to Cloudinary
           const result = await cloudinary.uploader.upload(filePath, {
             resource_type: 'video',
-            folder: 'videos/'
+            folder: 'Home/videos/'
           });
           
           console.log(`Uploaded: ${file}`);
