@@ -29,5 +29,18 @@
     </div>
 
     <script src="script.js"></script>
+    <script>
+        fetch('/videos')
+            .then(response => response.json())
+            .then(videos => {
+                const container = document.getElementById('main-video');
+                videos.forEach(video => {
+                    const videoElement = document.createElement('video');
+                    videoElement.src = `https://res.cloudinary.com/dv9pdawdx/video/upload/v1/${video}`;
+                    videoElement.controls = true;
+                    container.appendChild(videoElement);
+                });
+            });
+    </script>
 </body>
 </html>
