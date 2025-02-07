@@ -1,0 +1,88 @@
+/* Basic Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Load Cygnito Mono Font */
+@font-face {
+    font-family: 'Cygnito Mono';
+    src: url('fonts/Cygnito Mono.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+/* Global Styles */
+body {
+    font-family: 'Cygnito Mono', monospace;
+    background-color: #000000;
+    color: #ffffff;
+    height: 100vh;
+    overflow: hidden; /* Prevent overall page scrolling */
+}
+
+/* Container for Layout */
+.container {
+    display: flex;
+    height: 100vh;
+}
+
+/* Video List Styles */
+.video-list {
+    width: 40%;
+    background-color: #000000;
+    border-right: .25px solid #b6b6b6;
+    overflow-y: auto; /* Make the list scrollable */
+}
+
+.video-list h2 {
+    margin-bottom: 40px;
+}
+
+.video-list ul {
+    list-style: none;
+}
+
+.video-list ul li a {
+    text-decoration: none;
+    color: #e4e4e4;
+    font-size: 12px;
+}
+
+.video-list ul li a:hover {
+    color: #4400ff;
+}
+
+/* Video Player Container */
+.video-player {
+    width: 75%; /* Adjust based on your layout */
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative; /* Needed for absolute positioning of the background video */
+    overflow: hidden; /* Hide overflow from the background video */
+}
+
+/* Background Video */
+#background-video {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Ensure the video covers the entire container */
+    z-index: -1; /* Place the video behind other content */
+    opacity: 0.25; /* Adjust opacity to make it less distracting */
+}
+
+/* Main Video Player */
+#main-video {
+    width: 80%;
+    max-width: 400px;
+    max-height: 400px;
+    background-color: rgba(37, 37, 37, 0);
+    /*mix-blend-mode: exclusion;*/
+    z-index: 1; /* Ensure the main video is above the background video */
+}
