@@ -74,7 +74,9 @@ app.get('/videos', async (req, res) => {
         max_results: 500
       });
       
-      const videoFiles = result.resources.map(resource => resource.public_id);
+      const videoFiles = result.resources.map(resource => 
+        `https://res.cloudinary.com/dv9pdawdx/video/upload/v1/${resource.public_id}`
+      );
       res.json(videoFiles);
     } catch (error) {
       res.status(500).send('Unable to fetch videos');

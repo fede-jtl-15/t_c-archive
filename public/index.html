@@ -30,17 +30,18 @@
 
     <script src="script.js"></script>
     <script>
-        fetch('/videos')
-            .then(response => response.json())
-            .then(videos => {
-                const container = document.getElementById('main-video');
-                videos.forEach(video => {
-                    const videoElement = document.createElement('video');
-                    videoElement.src = `https://res.cloudinary.com/dv9pdawdx/video/upload/v1/${video}`;
-                    videoElement.controls = true;
-                    container.appendChild(videoElement);
-                });
+       fetch('/videos')
+        .then(response => response.json())
+        .then(videos => {
+            const container = document.getElementById('videoContainer');
+            videos.forEach(videoUrl => {
+                const videoElement = document.createElement('video');
+                videoElement.src = videoUrl;
+                videoElement.controls = true;
+                videoElement.style.maxWidth = '100%';
+                container.appendChild(videoElement);
             });
+        });
     </script>
 </body>
 </html>
