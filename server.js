@@ -1,6 +1,16 @@
 const express = require('express');
+const cloudinary = require('cloudinary').v2;
 const fs = require('fs');
 const path = require('path');
+
+
+// Cloudinary configuration
+cloudinary.config({
+    cloud_name: process.env.dv9pdawdx,
+    api_key: process.env.tc_archive,
+    api_secret: process.env.ultKZwod8z2nYWoYU64gVy-VQXI
+});
+
 
 const app = express();
 const VIDEOS_FOLDER = path.join(__dirname, 'videos'); // Path to your videos folder
@@ -18,16 +28,20 @@ app.get('/', (req, res) => {
 });
 
 // Endpoint to get the list of videos
-app.get('/videos', (req, res) => {
-    fs.readdir(VIDEOS_FOLDER, (err, files) => {
-        if (err) {
-            return res.status(500).send('Unable to scan videos directory');
-        }
-        // Include both .mp4 and .mov files
-        const videoFiles = files.filter(file => file.endsWith('.MOV') || file.endsWith('.mp4'));
-        res.json(videoFiles);
-    });
-});
+app.get('/videos', async (req, res) => {
+    try {
+      const result = await cloudinary.api.resources({
+        type: 'upload',
+        prefix: 'videos/', // Your video folder in Cloudinary
+        max_results: 500
+      });
+      
+      const videoFiles = result.resources.map(resource => resource.public_id);
+      res.json(videoFiles);
+    } catch (error) {
+      res.status(500).send('Unable to fetch videos');
+    }
+  });
 
 // Start the server (only one listen call)
 const port = process.env.PORT || 3000;
