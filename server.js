@@ -3,6 +3,10 @@ const cloudinary = require('cloudinary').v2;
 const fs = require('fs');
 const path = require('path');
 
+const app = express();
+const VIDEOS_FOLDER = path.join(__dirname, 'videos'); // Path to your videos folder
+const PUBLIC_FOLDER = path.join(__dirname, 'public'); // Path to your public folder
+
 
 // Cloudinary configuration
 cloudinary.config({
@@ -12,9 +16,37 @@ cloudinary.config({
 });
 
 
-const app = express();
-const VIDEOS_FOLDER = path.join(__dirname, 'videos'); // Path to your videos folder
-const PUBLIC_FOLDER = path.join(__dirname, 'public'); // Path to your public folder
+
+
+//upload folder from folder
+async function uploadNewVideos() {
+    try {
+      const files = fs.readdirSync(VIDEOS_FOLDER);
+      
+      for (const file of files) {
+        if (file.endsWith('.mp4') || file.endsWith('.MOV')) {
+          const filePath = path.join(VIDEOS_FOLDER, file);
+          
+          // Upload to Cloudinary
+          const result = await cloudinary.uploader.upload(filePath, {
+            resource_type: 'video',
+            folder: 'videos/'
+          });
+          
+          console.log(`Uploaded: ${file}`);
+          
+          // Optional: Remove local file after upload
+          fs.unlinkSync(filePath);
+        }
+      }
+    } catch (error) {
+      console.error('Upload error:', error);
+    }
+  }
+  
+  // Run upload on server start
+  uploadNewVideos();
+  
 
 // Serve static files (HTML, CSS, JS)
 app.use(express.static(PUBLIC_FOLDER));
