@@ -15,14 +15,20 @@ cloudinary.config({
     api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
-
-
+if (!fs.existsSync(VIDEOS_FOLDER)) {
+    fs.mkdirSync(VIDEOS_FOLDER);
+  }
 
 //upload folder from folder
 async function uploadNewVideos() {
     try {
       const files = fs.readdirSync(VIDEOS_FOLDER);
-      
+
+      if (files.length === 0) {
+        console.log('No videos to upload');
+        return;
+      }    
+
       for (const file of files) {
         if (file.endsWith('.mp4') || file.endsWith('.MOV')) {
           const filePath = path.join(VIDEOS_FOLDER, file);
