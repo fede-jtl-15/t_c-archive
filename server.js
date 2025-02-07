@@ -10,9 +10,9 @@ const PUBLIC_FOLDER = path.join(__dirname, 'public'); // Path to your public fol
 
 // Cloudinary configuration
 cloudinary.config({
-    cloud_name: process.env.dv9pdawdx,
-    api_key: process.env.tc_archive,
-    api_secret: process.env.ultKZwod8z2nYWoYU64gVy-VQXI
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
 
