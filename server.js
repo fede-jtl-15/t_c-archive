@@ -70,15 +70,21 @@ app.get('/videos', async (req, res) => {
     try {
       const result = await cloudinary.api.resources({
         type: 'upload',
-        prefix: 'videos/', // Your video folder in Cloudinary
+        prefix: 'videos/', 
         max_results: 500
       });
+      
+      console.log('Cloudinary resources:', result.resources);
       
       const videoFiles = result.resources.map(resource => 
         `https://res.cloudinary.com/dv9pdawdx/video/upload/v1/${resource.public_id}`
       );
+      
+      console.log('Video URLs:', videoFiles);
+      
       res.json(videoFiles);
     } catch (error) {
+      console.error('Video fetch error:', error);
       res.status(500).send('Unable to fetch videos');
     }
   });
