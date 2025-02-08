@@ -33,6 +33,26 @@ fetch('http://localhost:3000/videos')
             videoList.appendChild(listItem);
         });
 
+
+        fetch('/videos')
+            .then(response => response.json())
+            .then(videos => {
+                console.log('Received videos:', videos); // Debug log
+                const videoList = document.getElementById('video-list');
+                videos.forEach(videoUrl => {
+                    console.log('Processing video URL:', videoUrl); // Debug log
+                    const listItem = document.createElement('li');
+                    const videoLink = document.createElement('a');
+                    videoLink.href = videoUrl;
+                    videoLink.textContent = videoUrl.split('/').pop();
+                    videoLink.target = '_blank';
+                    listItem.appendChild(videoLink);
+                    videoList.appendChild(listItem);
+                });
+        })
+    .catch(error => console.error('Error fetching videos:', error));
+
+    
         // Add click event listeners to each video link
         const videoLinks = document.querySelectorAll('.video-list a');
         videoLinks.forEach(link => {

@@ -67,27 +67,34 @@ app.get('/', (req, res) => {
 
 // Endpoint to get the list of videos
 app.get('/videos', async (req, res) => {
-    try {
-      const result = await cloudinary.api.resources({
-        type: 'upload',
-        prefix: 'videos/', 
-        max_results: 500
-      });
-      
-      console.log('Cloudinary resources:', result.resources);
-      
-      const videoFiles = result.resources.map(resource => 
-        `https://res.cloudinary.com/dv9pdawdx/video/upload/v1/${resource.public_id}`
-      );
-      
-      console.log('Video URLs:', videoFiles);
-      
-      res.json(videoFiles);
-    } catch (error) {
-      console.error('Video fetch error:', error);
-      res.status(500).send('Unable to fetch videos');
+  try {
+    console.log('Attempting to fetch videos from Cloudinary...');
+    const result = await cloudinary.api.resources({
+      type: 'upload',
+      prefix: 'videos/', 
+      max_results: 500
+    });
+    
+    console.log('Cloudinary API Response:', result);
+    
+    if (!result.resources || result.resources.length === 0) {
+      console.log('No videos found in Cloudinary');
+      return res.json([]);
     }
-  });
+    
+    const videoFiles = result.resources.map(resource => {
+      const url = `https://res.cloudinary.com/dv9pdawdx/video/upload/${resource.public_id}`;
+      console.log('Generated URL:', url);
+      return url;
+    });
+    
+    console.log('Sending video URLs:', videoFiles);
+    res.json(videoFiles);
+  } catch (error) {
+    console.error('Error details:', error);
+    res.status(500).send(`Unable to fetch videos: ${error.message}`);
+  }
+});
 
 // Start the server (only one listen call)
 const port = process.env.PORT || 3000;
