@@ -29,21 +29,5 @@
     </div>
 
     <script src="script.js"></script>
-    <script>
-        fetch('/videos')
-            .then(response => response.json())
-            .then(videos => {
-                const videoList = document.getElementById('video-list');
-                videos.forEach(videoUrl => {
-                    const listItem = document.createElement('li');
-                    const videoLink = document.createElement('a');
-                    videoLink.href = videoUrl;
-                    videoLink.textContent = videoUrl.split('/').pop();
-                    videoLink.target = '_blank';
-                    listItem.appendChild(videoLink);
-                    videoList.appendChild(listItem);
-        });
-    });
-    </script>
 </body>
 </html>
