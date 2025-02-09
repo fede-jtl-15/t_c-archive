@@ -1,6 +1,5 @@
 const express = require('express');
 const cloudinary = require('cloudinary').v2;
-const fs = require('fs');
 const path = require('path');
 const cors = require('cors');
 
@@ -34,7 +33,7 @@ app.get('/videos', async (req, res) => {
         
         const result = await cloudinary.api.resources({
             type: 'upload',
-            prefix: 'videos/',
+            prefix: 'videos/', // This should match your Cloudinary folder name
             resource_type: 'video',
             max_results: 500
         });
@@ -65,27 +64,8 @@ app.get('/videos', async (req, res) => {
     }
 });
 
-// Health check endpoint
-app.get('/health', (req, res) => {
-    res.json({ status: 'ok', timestamp: new Date().toISOString() });
-});
-
-// Error handling middleware
-app.use((err, req, res, next) => {
-    console.error('Unhandled error:', err);
-    res.status(500).json({
-        error: 'Internal server error',
-        details: err.message
-    });
-});
-
 // Start server
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
     console.log(`Server running on port ${port}`);
-    
-    // Upload any new videos when server starts
-    uploadNewVideos().catch(error => {
-        console.error('Error during initial video upload:', error);
-    });
 });
