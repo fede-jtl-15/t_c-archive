@@ -26,53 +26,70 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(PUBLIC_FOLDER, 'index.html'));
 });
 
+// Function to validate video format
+function isValidVideoFormat(resource) {
+    // Check if the resource has a valid video format
+    const validFormats = ['mp4', 'mov', 'MOV', 'MP4'];
+    const format = resource.format ? resource.format.toLowerCase() : '';
+    return validFormats.includes(format.toLowerCase());
+}
+
 // API endpoint to get list of videos from Cloudinary
 app.get('/videos', async (req, res) => {
     try {
         console.log('Fetching videos from Cloudinary...');
-        console.log('Using cloud name:', process.env.CLOUDINARY_CLOUD_NAME);
         
         const result = await cloudinary.api.resources({
             type: 'upload',
-            resource_type: 'video',  // Specifically look for videos
+            resource_type: 'video',
             max_results: 500,
-            prefix: ''  // Look in root folder
+            prefix: ''
         });
         
-        console.log('Found resources:', result.resources.length);
+        console.log(`Found ${result.resources.length} total resources`);
         
-        if (!result.resources || result.resources.length === 0) {
-            console.log('No videos found in Cloudinary');
-            return res.json([]);
-        }
+        // Filter out duplicates and invalid videos using a Map
+        const uniqueVideos = new Map();
         
-        const videoFiles = result.resources.map(resource => {
-            const url = cloudinary.url(resource.public_id, {
-                resource_type: 'video',
-                secure: true
-            });
-            
-            // Get just the filename for display
-            const name = resource.public_id.split('/').pop();
-            
-            console.log('Processing video:', {
-                name,
-                url,
-                public_id: resource.public_id
-            });
-            
-            return {
-                url,
-                name
-            };
+        result.resources.forEach(resource => {
+            // Only process if it's a valid video format
+            if (isValidVideoFormat(resource)) {
+                const url = cloudinary.url(resource.public_id, {
+                    resource_type: 'video',
+                    secure: true
+                });
+                
+                const name = resource.public_id.split('/').pop();
+                
+                // Use public_id as unique identifier
+                if (!uniqueVideos.has(resource.public_id)) {
+                    uniqueVideos.set(resource.public_id, {
+                        url,
+                        name,
+                        format: resource.format
+                    });
+                    
+                    console.log('Added valid video:', {
+                        name,
+                        format: resource.format,
+                        public_id: resource.public_id
+                    });
+                }
+            } else {
+                console.log('Skipped invalid resource:', {
+                    public_id: resource.public_id,
+                    format: resource.format
+                });
+            }
         });
         
-        console.log(`Sending ${videoFiles.length} video URLs`);
+        const videoFiles = Array.from(uniqueVideos.values());
+        console.log(`Sending ${videoFiles.length} unique valid videos`);
+        
         res.json(videoFiles);
         
     } catch (error) {
-        console.error('Error details:', error);
-        console.error('Stack trace:', error.stack);
+        console.error('Error fetching videos:', error);
         res.status(500).json({
             error: 'Failed to fetch videos',
             details: error.message
@@ -84,9 +101,5 @@ app.get('/videos', async (req, res) => {
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
     console.log(`Server started on port ${port}`);
-    console.log('Cloudinary config:', {
-        cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-        api_key: process.env.CLOUDINARY_API_KEY ? 'Set' : 'Not set',
-        api_secret: process.env.CLOUDINARY_API_SECRET ? 'Set' : 'Not set'
-    });
+    console.log('Cloudinary configuration verified');
 });
