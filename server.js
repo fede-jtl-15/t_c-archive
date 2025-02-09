@@ -30,33 +30,49 @@ app.get('/', (req, res) => {
 app.get('/videos', async (req, res) => {
     try {
         console.log('Fetching videos from Cloudinary...');
+        console.log('Using cloud name:', process.env.CLOUDINARY_CLOUD_NAME);
         
         const result = await cloudinary.api.resources({
             type: 'upload',
-            prefix: 'videos/', // This should match your Cloudinary folder name
-            resource_type: 'video',
-            max_results: 500
+            resource_type: 'video',  // Specifically look for videos
+            max_results: 500,
+            prefix: ''  // Look in root folder
         });
         
-        console.log('Cloudinary API Response:', result);
+        console.log('Found resources:', result.resources.length);
         
         if (!result.resources || result.resources.length === 0) {
             console.log('No videos found in Cloudinary');
             return res.json([]);
         }
         
-        const videoFiles = result.resources.map(resource => ({
-            url: cloudinary.url(resource.public_id, {
+        const videoFiles = result.resources.map(resource => {
+            const url = cloudinary.url(resource.public_id, {
                 resource_type: 'video',
                 secure: true
-            }),
-            name: resource.public_id.split('/').pop() // Get the filename without the path
-        }));
+            });
+            
+            // Get just the filename for display
+            const name = resource.public_id.split('/').pop();
+            
+            console.log('Processing video:', {
+                name,
+                url,
+                public_id: resource.public_id
+            });
+            
+            return {
+                url,
+                name
+            };
+        });
         
-        console.log('Sending video URLs:', videoFiles);
+        console.log(`Sending ${videoFiles.length} video URLs`);
         res.json(videoFiles);
+        
     } catch (error) {
-        console.error('Error fetching videos:', error);
+        console.error('Error details:', error);
+        console.error('Stack trace:', error.stack);
         res.status(500).json({
             error: 'Failed to fetch videos',
             details: error.message
@@ -67,5 +83,10 @@ app.get('/videos', async (req, res) => {
 // Start server
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
-    console.log(`Server running on port ${port}`);
+    console.log(`Server started on port ${port}`);
+    console.log('Cloudinary config:', {
+        cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+        api_key: process.env.CLOUDINARY_API_KEY ? 'Set' : 'Not set',
+        api_secret: process.env.CLOUDINARY_API_SECRET ? 'Set' : 'Not set'
+    });
 });
