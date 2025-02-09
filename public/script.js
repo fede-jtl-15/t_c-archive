@@ -1,32 +1,46 @@
 document.addEventListener('DOMContentLoaded', () => {
     const backgroundVideo = document.getElementById('background-video');
-    backgroundVideo.playbackRate = 1;
+    const videoList = document.getElementById('video-list');
+    const mainVideo = document.getElementById('main-video');
+
+    // Set background video properties
+    backgroundVideo.playbackRate = 0.25;
     backgroundVideo.play().catch(error => {
         console.error('Error playing background video:', error);
     });
 
-    // Single fetch call with relative URL
+    // Enable looping for main video
+    mainVideo.loop = true;
+
+    // Fetch videos from server
     fetch('/videos')
         .then(response => response.json())
         .then(videos => {
             console.log('Received videos:', videos);
-            const videoList = document.getElementById('video-list');
-            const mainVideo = document.getElementById('main-video');
             
-            videos.forEach(videoUrl => {
+            // Clear existing list
+            videoList.innerHTML = '';
+            
+            // Add each video to the list
+            videos.forEach(video => {
                 const listItem = document.createElement('li');
                 const videoLink = document.createElement('a');
+                
                 videoLink.href = '#';
-                videoLink.textContent = videoUrl.split('/').pop().replace('.mp4', '').replace('.MOV', '');
-                videoLink.setAttribute('data-video', videoUrl);
+                videoLink.textContent = video.name;
+                videoLink.setAttribute('data-video', video.url);
                 
                 videoLink.addEventListener('click', (e) => {
                     e.preventDefault();
+                    
+                    // Update main video source
                     mainVideo.innerHTML = '';
                     const sourceElement = document.createElement('source');
-                    sourceElement.src = videoUrl;
-                    sourceElement.type = videoUrl.toLowerCase().endsWith('.mp4') ? 'video/mp4' : 'video/quicktime';
+                    sourceElement.src = video.url;
+                    sourceElement.type = 'video/mp4';
                     mainVideo.appendChild(sourceElement);
+                    
+                    // Load and play the video
                     mainVideo.load();
                     mainVideo.play().catch(error => {
                         console.error('Error playing video:', error);
@@ -37,5 +51,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 videoList.appendChild(listItem);
             });
         })
-        .catch(error => console.error('Error fetching videos:', error));
+        .catch(error => {
+            console.error('Error fetching videos:', error);
+            videoList.innerHTML = '<li>Error loading videos</li>';
+        });
 });

@@ -9,8 +9,7 @@ const app = express();
 // Enable CORS
 app.use(cors());
 
-// Define paths
-const VIDEOS_FOLDER = path.join(__dirname, 'videos');
+// Define path for static files
 const PUBLIC_FOLDER = path.join(__dirname, 'public');
 
 // Cloudinary configuration
@@ -20,58 +19,15 @@ cloudinary.config({
     api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
-// Ensure videos folder exists
-if (!fs.existsSync(VIDEOS_FOLDER)) {
-    fs.mkdirSync(VIDEOS_FOLDER);
-}
-
-// Function to upload new videos to Cloudinary
-async function uploadNewVideos() {
-    try {
-        const files = fs.readdirSync(VIDEOS_FOLDER);
-
-        if (files.length === 0) {
-            console.log('No new videos to upload');
-            return;
-        }
-
-        for (const file of files) {
-            if (file.endsWith('.mp4') || file.endsWith('.MOV')) {
-                const filePath = path.join(VIDEOS_FOLDER, file);
-                
-                try {
-                    // Upload to Cloudinary
-                    const result = await cloudinary.uploader.upload(filePath, {
-                        resource_type: 'video',
-                        folder: 'videos',
-                        public_id: file.replace(/\.[^/.]+$/, '') // Remove file extension for public_id
-                    });
-                    
-                    console.log(`Successfully uploaded: ${file}`);
-                    console.log('Cloudinary response:', result);
-                    
-                    // Remove local file after successful upload
-                    fs.unlinkSync(filePath);
-                } catch (uploadError) {
-                    console.error(`Error uploading ${file}:`, uploadError);
-                }
-            }
-        }
-    } catch (error) {
-        console.error('Error in uploadNewVideos:', error);
-    }
-}
-
 // Middleware to serve static files
 app.use(express.static(PUBLIC_FOLDER));
-app.use('/videos', express.static(VIDEOS_FOLDER));
 
 // Root route
 app.get('/', (req, res) => {
     res.sendFile(path.join(PUBLIC_FOLDER, 'index.html'));
 });
 
-// API endpoint to get list of videos
+// API endpoint to get list of videos from Cloudinary
 app.get('/videos', async (req, res) => {
     try {
         console.log('Fetching videos from Cloudinary...');
@@ -90,14 +46,13 @@ app.get('/videos', async (req, res) => {
             return res.json([]);
         }
         
-        const videoFiles = result.resources.map(resource => {
-            const url = cloudinary.url(resource.public_id, {
+        const videoFiles = result.resources.map(resource => ({
+            url: cloudinary.url(resource.public_id, {
                 resource_type: 'video',
                 secure: true
-            });
-            console.log('Generated URL:', url);
-            return url;
-        });
+            }),
+            name: resource.public_id.split('/').pop() // Get the filename without the path
+        }));
         
         console.log('Sending video URLs:', videoFiles);
         res.json(videoFiles);
