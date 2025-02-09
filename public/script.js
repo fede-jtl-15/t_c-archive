@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     const backgroundVideo = document.getElementById('background-video');
-    backgroundVideo.playbackRate = 0.25;
+    backgroundVideo.playbackRate = 1;
     backgroundVideo.play().catch(error => {
         console.error('Error playing background video:', error);
     });
