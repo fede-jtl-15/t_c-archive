@@ -86,3 +86,16 @@ body {
     /*mix-blend-mode: exclusion;*/
     z-index: 1; /* Ensure the main video is above the background video */
 }
+
+.video-player video {
+    transition: opacity 0.3s ease;
+}
+
+#main-video {
+    opacity: 1;
+    transition: opacity 0.3s ease;
+}
+
+#main-video.loading {
+    opacity: 0.3;
+}

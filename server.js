@@ -26,14 +26,6 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(PUBLIC_FOLDER, 'index.html'));
 });
 
-// Function to validate video format
-function isValidVideoFormat(resource) {
-    // Check if the resource has a valid video format
-    const validFormats = ['mp4', 'mov', 'MOV', 'MP4'];
-    const format = resource.format ? resource.format.toLowerCase() : '';
-    return validFormats.includes(format.toLowerCase());
-}
-
 // API endpoint to get list of videos from Cloudinary
 app.get('/videos', async (req, res) => {
     try {
@@ -43,49 +35,30 @@ app.get('/videos', async (req, res) => {
             type: 'upload',
             resource_type: 'video',
             max_results: 500,
-            prefix: ''
+            prefix: 'videos/', // Match your folder structure
+            context: true,
+            metadata: true
         });
         
-        console.log(`Found ${result.resources.length} total resources`);
-        
-        // Filter out duplicates and invalid videos using a Map
-        const uniqueVideos = new Map();
-        
-        result.resources.forEach(resource => {
-            // Only process if it's a valid video format
-            if (isValidVideoFormat(resource)) {
-                const url = cloudinary.url(resource.public_id, {
+        if (!result.resources || result.resources.length === 0) {
+            console.log('No videos found in Cloudinary');
+            return res.json([]);
+        }
+
+        // Create video list with optimized settings
+        const videoFiles = result.resources
+            .filter(resource => resource.format && resource.format.toLowerCase() === 'mp4')
+            .map(resource => ({
+                url: cloudinary.url(resource.public_id, {
                     resource_type: 'video',
-                    secure: true
-                });
-                
-                const name = resource.public_id.split('/').pop();
-                
-                // Use public_id as unique identifier
-                if (!uniqueVideos.has(resource.public_id)) {
-                    uniqueVideos.set(resource.public_id, {
-                        url,
-                        name,
-                        format: resource.format
-                    });
-                    
-                    console.log('Added valid video:', {
-                        name,
-                        format: resource.format,
-                        public_id: resource.public_id
-                    });
-                }
-            } else {
-                console.log('Skipped invalid resource:', {
-                    public_id: resource.public_id,
-                    format: resource.format
-                });
-            }
-        });
+                    secure: true,
+                    quality: 'auto',
+                    fetch_format: 'auto'
+                }),
+                name: resource.public_id.split('/').pop().replace(/\.[^/.]+$/, '')
+            }));
         
-        const videoFiles = Array.from(uniqueVideos.values());
-        console.log(`Sending ${videoFiles.length} unique valid videos`);
-        
+        console.log(`Sending ${videoFiles.length} optimized video URLs`);
         res.json(videoFiles);
         
     } catch (error) {
@@ -101,5 +74,4 @@ app.get('/videos', async (req, res) => {
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
     console.log(`Server started on port ${port}`);
-    console.log('Cloudinary configuration verified');
 });
