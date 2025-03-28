@@ -34,38 +34,57 @@ app.get('/videos', async (req, res) => {
         const result = await cloudinary.api.resources({
             type: 'upload',
             resource_type: 'video',
-            max_results: 500,
-            prefix: 'videos/', // Match your folder structure
+            max_results: 50, // Reduced from 500
+            prefix: 'videos/', // Confirm this matches your folder structure
             context: true,
             metadata: true
         });
+        
+        console.log('Raw Cloudinary API Response:', JSON.stringify(result, null, 2));
         
         if (!result.resources || result.resources.length === 0) {
             console.log('No videos found in Cloudinary');
             return res.json([]);
         }
 
+        // Detailed logging of resources before filtering
+        console.log('Raw Resources:', result.resources.map(resource => ({
+            public_id: resource.public_id,
+            format: resource.format,
+            url: resource.url
+        })));
+
         // Create video list with optimized settings
         const videoFiles = result.resources
-            .filter(resource => resource.format && resource.format.toLowerCase() === 'mp4')
-            .map(resource => ({
-                url: cloudinary.url(resource.public_id, {
-                    resource_type: 'video',
-                    secure: true,
-                    quality: 'auto',
-                    fetch_format: 'auto'
-                }),
-                name: resource.public_id.split('/').pop().replace(/\.[^/.]+$/, '')
-            }));
+            .filter(resource => {
+                const isMP4 = resource.format && resource.format.toLowerCase() === 'mp4';
+                console.log(`Checking resource ${resource.public_id}: isMP4 = ${isMP4}`);
+                return isMP4;
+            })
+            .map(resource => {
+                const videoName = resource.public_id.split('/').pop().replace(/\.[^/.]+$/, '');
+                console.log(`Mapped video: ${videoName}, Full Public ID: ${resource.public_id}`);
+                return {
+                    url: cloudinary.url(resource.public_id, {
+                        resource_type: 'video',
+                        secure: true,
+                        quality: 'auto',
+                        fetch_format: 'auto'
+                    }),
+                    name: videoName
+                };
+            });
         
+        console.log(`Processed Videos:`, videoFiles);
         console.log(`Sending ${videoFiles.length} optimized video URLs`);
         res.json(videoFiles);
         
     } catch (error) {
-        console.error('Error fetching videos:', error);
+        console.error('Detailed Error fetching videos:', error);
         res.status(500).json({
             error: 'Failed to fetch videos',
-            details: error.message
+            details: error.message,
+            fullError: error
         });
     }
 });
